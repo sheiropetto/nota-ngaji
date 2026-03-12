@@ -8,15 +8,18 @@ type Note = {
   title: string;
   content: string;
   created_at: string;
+  label: string;
 };
 
 const ITEMS_PER_PAGE = 6;
+const LABELS = ['Akhlak', 'Feqah', 'Tauhid', 'Al-Quran & Hadis', 'Tafsir', 'Umum', 'Lain-lain'];
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"list" | "create" | "read">("list");
   const [title, setTitle] = useState("");
+  const [label, setLabel] = useState<string>('Umum');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,11 +34,17 @@ export default function NotesPage() {
     setLoading(true);
     const from = (currentPage - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
+
     let query = supabase.from("notes").select("*", { count: 'exact' });
-    if (searchTerm) query = query.ilike('title', `%${searchTerm}%`);
+
+    if (searchTerm) {
+      query = query.ilike('title', `%${searchTerm}%`);
+    }
+    
     const { data, count } = await query
       .order("created_at", { ascending: false })
       .range(from, to);
+    
     if (data) {
       setNotes(data);
       setTotalCount(count || 0);
@@ -43,39 +52,61 @@ export default function NotesPage() {
     setLoading(false);
   }, [currentPage, searchTerm]);
 
-  useEffect(() => { fetchNotes(); }, [fetchNotes]);
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = editorRef.current?.innerHTML || "";
+
     if (!title.trim() || !content.trim()) return;
+
+    const noteData = { title, content, label };
+
     if (editingId) {
-      const { error } = await supabase.from("notes").update({ title, content }).eq("id", editingId);
-      if (!error) { showToast("Nota dikemaskini."); resetEditor(); fetchNotes(); }
+      const { error } = await supabase.from("notes").update(noteData).eq("id", editingId);
+      if (!error) {
+        showToast("Nota dikemaskini.");
+        resetEditor();
+        fetchNotes();
+      }
     } else {
-      const { data } = await supabase.from("notes").insert([{ title, content }]).select();
-      if (data) { showToast("Nota disimpan."); resetEditor(); setCurrentPage(1); fetchNotes(); }
+      const { data } = await supabase.from("notes").insert([noteData]).select();
+      if (data) {
+        showToast("Nota disimpan.");
+        resetEditor();
+        setCurrentPage(1);
+        fetchNotes();
+      }
     }
   };
 
   const resetEditor = () => {
     setView("list");
     setTitle("");
+    setLabel("Umum");
     setEditingId(null);
     if (editorRef.current) editorRef.current.innerHTML = "";
   };
 
   const handleDelete = async (id: number) => {
     const { error } = await supabase.from("notes").delete().eq("id", id);
-    if (!error) { fetchNotes(); showToast("Nota dipadam."); }
+    if (!error) {
+      fetchNotes();
+      showToast("Nota dipadam.");
+    }
     setDeleteConfirmationId(null);
   };
 
   const handleEdit = (note: Note) => {
     setTitle(note.title);
+    setLabel(note.label || 'Umum');
     setEditingId(note.id);
     setView("create");
-    setTimeout(() => { if (editorRef.current) editorRef.current.innerHTML = note.content; }, 0);
+    setTimeout(() => {
+      if (editorRef.current) editorRef.current.innerHTML = note.content;
+    }, 0);
   };
 
   const formatDoc = (cmd: string, value?: string) => {
@@ -89,7 +120,7 @@ export default function NotesPage() {
   };
 
   const handleShare = (e: React.MouseEvent, note: Note) => {
-    e.stopPropagation();
+    e.stopPropagation(); 
     const textContent = note.content.replace(/<[^>]*>/g, '\n');
     const text = `*${note.title}*\n\n${textContent}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
@@ -98,19 +129,18 @@ export default function NotesPage() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 pb-20 text-gray-900">
+    <main className="min-h-screen bg-gray-50 p-4 pb-24 text-gray-900">
       <div className="mx-auto max-w-3xl space-y-8">
+        
         {view === "read" && readNote ? (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <header className="flex items-center justify-between border-b border-gray-200 pb-4">
-              <button onClick={() => setView("list")} className="flex items-center gap-2 text-emerald-600 font-bold active:opacity-50 transition-opacity">
-                ← Kembali
-              </button>
-              <button onClick={() => handleEdit(readNote)} className="text-sm bg-gray-100 px-5 py-2 rounded-full font-medium active:bg-gray-200">Edit</button>
+            <header className="flex items-center justify-between border-b pb-4">
+              <button onClick={() => setView("list")} className="text-emerald-600 font-bold active:opacity-50">← Kembali</button>
+              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full font-bold uppercase tracking-wider">{readNote.label}</span>
             </header>
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-              <h1 className="text-2xl font-bold mb-6 leading-tight">{readNote.title}</h1>
-              <article className="prose prose-emerald max-w-none text-gray-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" dangerouslySetInnerHTML={{ __html: readNote.content }} />
+              <h1 className="text-2xl font-bold mb-4">{readNote.title}</h1>
+              <article className="prose prose-emerald max-w-none text-gray-700 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" dangerouslySetInnerHTML={{ __html: readNote.content }} />
             </div>
           </div>
         ) : (
@@ -126,30 +156,31 @@ export default function NotesPage() {
             </header>
 
             {view === "create" ? (
-              <form onSubmit={handleSave} className="space-y-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-100">
-                <input type="text" placeholder="Tajuk Kuliyah..." value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-2xl border-none bg-gray-50 p-4 text-xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <form onSubmit={handleSave} className="space-y-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-xl">
+                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                  {LABELS.map(l => (
+                    <button key={l} type="button" onClick={() => setLabel(l)} className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-colors ${label === l ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{l}</button>
+                  ))}
+                </div>
+                <input type="text" placeholder="Tajuk..." value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-2xl border-none bg-gray-50 p-4 text-xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
                 
-                {/* TOOLBAR: NO HOVER, MOBILE READY */}
+                {/* TOOLBAR WITH SVG ICONS */}
                 <div className="flex items-center gap-2 border-y border-gray-100 py-3 text-gray-600">
                   <button type="button" onClick={() => formatDoc('bold')} className="w-12 h-12 bg-gray-50 rounded-xl font-bold flex items-center justify-center active:bg-gray-200">B</button>
                   <button type="button" onClick={() => formatDoc('italic')} className="w-12 h-12 bg-gray-50 rounded-xl italic flex items-center justify-center active:bg-gray-200">I</button>
                   <div className="w-px h-8 bg-gray-200 mx-1"></div>
-                  
                   <button type="button" onClick={() => formatDoc('insertUnorderedList')} className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center active:bg-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                   </button>
-
                   <button type="button" onClick={() => formatDoc('insertOrderedList')} className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center active:bg-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg>
                   </button>
                 </div>
 
-                <div ref={editorRef} className="min-h-[350px] p-2 focus:outline-none prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" contentEditable suppressContentEditableWarning />
+                <div ref={editorRef} className="min-h-[300px] p-2 focus:outline-none prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" contentEditable suppressContentEditableWarning />
                 
                 <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold active:bg-emerald-700 active:scale-95 transition-all">
-                    {editingId ? "Kemaskini" : "Simpan"}
-                  </button>
+                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold active:bg-emerald-700">{editingId ? "Update" : "Simpan"}</button>
                   <button type="button" onClick={resetEditor} className="px-6 py-4 text-gray-500 font-medium active:text-gray-900">Batal</button>
                 </div>
               </form>
@@ -157,42 +188,38 @@ export default function NotesPage() {
               <div className="space-y-6">
                 <input type="text" placeholder="Cari nota..." className="w-full rounded-full border border-gray-200 p-4 px-6 shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 <div className="grid gap-4 md:grid-cols-2">
-                  {loading ? (
-                    <div className="col-span-full py-12 text-center text-gray-400 italic">Memuatkan...</div>
-                  ) : notes.length === 0 ? (
-                    <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">Tiada nota dijumpai.</div>
-                  ) : (
-                    notes.map((note) => (
-                      <div key={note.id} onClick={() => { setReadNote(note); setView("read"); }} className="group relative flex flex-col justify-between rounded-3xl border border-gray-100 bg-white p-6 active:bg-gray-50 transition-colors cursor-pointer">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{note.title}</h3>
-                          <div className="text-gray-500 text-sm line-clamp-2" dangerouslySetInnerHTML={{ __html: note.content }} />
-                        </div>
-                        <div className="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
-                          <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">{new Date(note.created_at).toLocaleDateString('ms-MY')}</span>
-                          <div className="flex items-center gap-1">
-                            <button onClick={(e) => handleShare(e, note)} className="p-3 text-gray-400 active:text-emerald-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                  {notes.map((note) => (
+                    <div key={note.id} onClick={() => { setReadNote(note); setView("read"); }} className="group relative flex flex-col justify-between rounded-3xl border border-gray-100 bg-white p-6 active:bg-gray-50 transition-colors cursor-pointer">
+                      <div>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded mb-2 inline-block">{note.label || 'Umum'}</span>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{note.title}</h3>
+                        <div className="text-gray-500 text-sm line-clamp-2" dangerouslySetInnerHTML={{ __html: note.content }} />
+                      </div>
+                      <div className="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
+                        <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">{new Date(note.created_at).toLocaleDateString('ms-MY')}</span>
+                        <div className="flex items-center gap-1">
+                          <button onClick={(e) => handleShare(e, note)} className="p-3 text-gray-400 active:text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                          </button>
+                          <div className="relative">
+                            <button onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === note.id ? null : note.id); }} className="p-3 text-gray-400 active:bg-gray-100 rounded-full transition-colors">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" /></svg>
                             </button>
-                            <div className="relative">
-                              <button onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === note.id ? null : note.id); }} className="p-3 text-gray-400 active:bg-gray-100 rounded-full transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" /></svg>
-                              </button>
-                              {activeMenuId === note.id && (
-                                <div className="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-2xl shadow-xl border border-gray-100 z-10 overflow-hidden py-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleEdit(note); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-emerald-50 text-gray-700 transition-colors">Edit</button>
-                                  <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmationId(note.id); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-red-50 text-red-600 transition-colors">Delete</button>
-                                </div>
-                              )}
-                            </div>
+                            {activeMenuId === note.id && (
+                              <div className="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-2xl shadow-xl border border-gray-100 z-10 overflow-hidden py-1">
+                                <button onClick={(e) => { e.stopPropagation(); handleEdit(note); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-emerald-50 text-gray-700 transition-colors">Edit</button>
+                                <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmationId(note.id); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-red-50 text-red-600 transition-colors">Delete</button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
+
             {totalPages > 1 && view === "list" && (
               <div className="flex items-center justify-center gap-4 mt-12 py-4 border-t border-gray-100">
                 <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="rounded-full border border-gray-200 px-5 py-2.5 text-sm disabled:opacity-30 active:bg-white">Prev</button>
@@ -203,6 +230,7 @@ export default function NotesPage() {
           </>
         )}
       </div>
+
       {deleteConfirmationId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
@@ -215,8 +243,9 @@ export default function NotesPage() {
           </div>
         </div>
       )}
+
       {toastMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl text-sm animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
           {toastMessage}
         </div>
       )}
