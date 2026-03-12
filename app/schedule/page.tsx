@@ -23,6 +23,7 @@ export default function SchedulePage() {
   });
   const [selectedDay, setSelectedDay] = useState("Hari Ini");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -62,9 +63,14 @@ export default function SchedulePage() {
 
   const handleAddSchedule = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title || !time || !ustaz || !location) return;
+    if (!title || !time || !ustaz || !location) {
+      alert("Sila isi semua ruangan.");
+      return;
+    }
 
-    const { data } = await supabase
+    setIsSubmitting(true);
+
+    const { data, error } = await supabase
       .from("schedules")
       .insert([
         {
@@ -77,6 +83,13 @@ export default function SchedulePage() {
         },
       ])
       .select();
+
+    if (error) {
+      console.error(error);
+      alert("Gagal menambah jadual. Sila semak log atau 'Row Level Security' di Supabase.");
+      setIsSubmitting(false);
+      return;
+    }
 
     if (data) {
       const newItem = data[0] as ScheduleItem;
@@ -98,20 +111,22 @@ export default function SchedulePage() {
       setType("Maghrib");
       setDay("Hari Ini");
     }
+    alert("Jadual berjaya ditambah.");
+    setIsSubmitting(false);
   };
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-neutral-950 p-4 md:p-8 text-white">
+    <main className="min-h-[calc(100vh-64px)] bg-gray-50 p-4 md:p-8 text-gray-900">
       <div className="mx-auto max-w-2xl space-y-8">
         
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-emerald-500">Jadual Kuliyah</h1>
-            <p className="text-neutral-400">Semak jadual pengajian agama di sekitar anda.</p>
+            <h1 className="text-3xl font-bold text-emerald-600">Jadual Kuliyah</h1>
+            <p className="text-gray-500">Semak jadual pengajian agama di sekitar anda.</p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="rounded-full bg-emerald-600 px-6 py-2 font-bold text-white transition-all hover:bg-emerald-500 hover:scale-105"
+            className="rounded-full bg-emerald-600 px-6 py-2 font-bold text-white transition-all hover:bg-emerald-700 hover:scale-105 shadow-md shadow-emerald-100"
           >
             + Add Jadual
           </button>
@@ -125,8 +140,8 @@ export default function SchedulePage() {
               onClick={() => setSelectedDay(day)}
               className={`rounded-full px-6 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedDay === day
-                  ? "bg-emerald-600 text-white"
-                  : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-200"
+                  : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200"
               }`}
             >
               {day}
@@ -136,28 +151,28 @@ export default function SchedulePage() {
 
         {/* Schedule List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-white">{selectedDay}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{selectedDay}</h2>
           
           {schedule[selectedDay].length === 0 ? (
-            <div className="rounded-xl border border-dashed border-neutral-800 p-8 text-center text-neutral-500">
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
               Tiada kelas dijadualkan.
             </div>
           ) : (
             schedule[selectedDay].map((item) => (
               <div
                 key={item.id}
-                className="relative overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition-all hover:border-emerald-500/50"
+                className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm"
               >
-                <div className="absolute top-0 right-0 rounded-bl-xl bg-emerald-900/30 px-3 py-1 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                <div className="absolute top-0 right-0 rounded-bl-2xl bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 uppercase tracking-wider">
                   {item.type}
                 </div>
                 
                 <div className="mb-4">
-                  <span className="text-sm font-mono text-emerald-500">{item.time}</span>
-                  <h3 className="text-xl font-bold text-white mt-1">{item.title}</h3>
+                  <span className="text-sm text-emerald-600">{item.time}</span>
+                  <h3 className="text-xl font-bold text-gray-900 mt-1">{item.title}</h3>
                 </div>
                 
-                <div className="flex flex-col gap-2 text-sm text-neutral-400 sm:flex-row sm:items-center sm:gap-6">
+                <div className="flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-6">
                   <div className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                       <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
@@ -179,16 +194,17 @@ export default function SchedulePage() {
 
       {/* Add Schedule Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl">
-            <h2 className="mb-4 text-2xl font-bold text-white">Tambah Jadual Baru</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
+            <h2 className="mb-4 text-2xl font-bold text-gray-900">Tambah Jadual Baru</h2>
             <form onSubmit={handleAddSchedule} className="space-y-4">
               <input
                 type="text"
                 placeholder="Tajuk Kuliyah"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white placeholder-neutral-600 focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
+                required
               />
               <div className="grid grid-cols-2 gap-4">
                 <input
@@ -196,12 +212,13 @@ export default function SchedulePage() {
                   placeholder="Masa"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white placeholder-neutral-600 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
+                  required
                 />
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as ScheduleItem["type"])}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-emerald-500 focus:outline-none focus:bg-white"
                 >
                   <option>Maghrib</option>
                   <option>Isyak</option>
@@ -214,23 +231,25 @@ export default function SchedulePage() {
                 placeholder="Penceramah (e.g. Ustaz Azhar Idrus)"
                 value={ustaz}
                 onChange={(e) => setUstaz(e.target.value)}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white placeholder-neutral-600 focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
+                required
               />
               <input
                 type="text"
                 placeholder="Lokasi (e.g. Masjid Negeri)"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white placeholder-neutral-600 focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
+                required
               />
               <div>
-                <label className="mb-2 block text-sm font-medium text-neutral-400">
+                <label className="mb-2 block text-sm font-medium text-gray-500">
                   Hari
                 </label>
                 <select
                   value={day}
                   onChange={(e) => setDay(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-950 p-3 text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-emerald-500 focus:outline-none focus:bg-white"
                 >
                   {DAYS.map((d) => <option key={d}>{d}</option>)}
                 </select>
@@ -239,15 +258,16 @@ export default function SchedulePage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-neutral-700 px-6 py-3 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  className="rounded-full border border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-transform active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-500"
+                  disabled={isSubmitting}
+                  className="rounded-full bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95 shadow-md shadow-emerald-100"
                 >
-                  Save Schedule
+                  {isSubmitting ? "Saving..." : "Save Schedule"}
                 </button>
               </div>
             </form>

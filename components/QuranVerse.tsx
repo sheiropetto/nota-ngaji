@@ -42,12 +42,13 @@ export default function QuranVerse() {
   if (!ayah) return null;
 
   return (
-    <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-white p-8 text-center shadow-sm">
-      <blockquote className="relative mb-6 font-serif text-xl italic leading-relaxed text-emerald-950 md:text-2xl">
+    <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-100 bg-white p-8 text-center shadow-xl shadow-emerald-50/50">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-cyan-500"></div>
+      <blockquote className="relative mb-6 text-xl italic leading-relaxed text-gray-800 md:text-2xl">
         "{ayah.text}"
       </blockquote>
       
-      <cite className="block text-sm font-medium uppercase tracking-widest text-emerald-600 not-italic">
+      <cite className="block text-sm font-medium uppercase tracking-widest text-emerald-600 not-italic opacity-80">
         Surah {ayah.surah.englishName} • Verse {ayah.numberInSurah}
       </cite>
     </div>
