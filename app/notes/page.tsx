@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 type Note = {
@@ -27,31 +27,31 @@ export default function NotesPage() {
   const [readNote, setReadNote] = useState<Note | null>(null);
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchNotes = async () => {
-      setLoading(true);
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
+  const fetchNotes = useCallback(async () => {
+    setLoading(true);
+    const from = (currentPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
 
-      let query = supabase.from("notes").select("*", { count: 'exact' });
+    let query = supabase.from("notes").select("*", { count: 'exact' });
 
-      if (searchTerm) {
-        query = query.ilike('title', `%${searchTerm}%`);
-      }
-      
-      const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(from, to);
-      
-      if (data) {
-        setNotes(data);
-        setTotalCount(count || 0);
-      }
-      setLoading(false);
-    };
-
-    fetchNotes();
+    if (searchTerm) {
+      query = query.ilike('title', `%${searchTerm}%`);
+    }
+    
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    
+    if (data) {
+      setNotes(data);
+      setTotalCount(count || 0);
+    }
+    setLoading(false);
   }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
 
   useEffect(() => {
     setCurrentPage(1);

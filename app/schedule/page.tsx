@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 type ScheduleItem = {
@@ -36,11 +36,7 @@ export default function SchedulePage() {
   const [type, setType] = useState<ScheduleItem["type"]>("Maghrib");
   const [day, setDay] = useState("Hari Ini");
 
-  useEffect(() => {
-    fetchSchedules();
-  }, []);
-
-  const fetchSchedules = async () => {
+  const fetchSchedules = useCallback(async () => {
     const { data } = await supabase.from("schedules").select("*");
 
       if (data) {
@@ -62,7 +58,11 @@ export default function SchedulePage() {
 
         setSchedule(newSchedule);
       }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules]);
 
   const handleSaveSchedule = async (e: FormEvent) => {
     e.preventDefault();
