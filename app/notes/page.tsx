@@ -23,6 +23,9 @@ export default function NotesPage() {
   const [totalCount, setTotalCount] = useState(0);
   const editorRef = useRef<HTMLDivElement>(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [readNote, setReadNote] = useState<Note | null>(null);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -97,12 +100,12 @@ export default function NotesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Adakah anda pasti mahu memadam nota ini?")) return;
     const { error } = await supabase.from("notes").delete().eq("id", id);
     if (!error) {
       fetchNotes(); // Refetch notes for the current page
       showToast("Nota telah dipadam.");
     }
+    setDeleteConfirmationId(null);
   };
 
   const handleEdit = (note: Note) => {
@@ -125,6 +128,13 @@ export default function NotesPage() {
     setTimeout(() => {
       setToastMessage("");
     }, 3000);
+  };
+
+  const handleShare = (note: Note) => {
+    const textContent = note.content.replace(/<[^>]*>/g, '\n'); // Simple strip tags
+    const text = `*${note.title}*\n\n${textContent}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -170,7 +180,7 @@ export default function NotesPage() {
             {/* Rich Text Editor Area */}
             <div
               ref={editorRef}
-              className="min-h-[300px] w-full resize-none rounded-b-lg border border-t-0 border-gray-200 bg-gray-50 p-4 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white overflow-y-auto transition-colors prose max-w-none"
+              className="min-h-[300px] w-full resize-none rounded-b-lg border border-t-0 border-gray-200 bg-gray-50 p-4 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white overflow-y-auto transition-colors prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
               contentEditable
               suppressContentEditableWarning
             />
@@ -215,12 +225,16 @@ export default function NotesPage() {
                 </div>
               ) : (
                 notes.map((note) => (
-                  <div key={note.id} className="group relative flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm">
+                  <div 
+                    key={note.id} 
+                    onClick={() => setReadNote(note)}
+                    className="group relative flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm cursor-pointer"
+                  >
                   <div>
                     <h3 className="mb-2 text-xl font-bold text-gray-900">{note.title}</h3>
                     {/* Render HTML Content safely */}
                     <div 
-                      className="text-gray-600 line-clamp-4 prose max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1"
+                      className="text-gray-600 line-clamp-4 prose max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
                       dangerouslySetInnerHTML={{ __html: note.content }}
                     />
                   </div>
@@ -230,19 +244,35 @@ export default function NotesPage() {
                     </span>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleEdit(note)}
-                        className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600"
-                        title="Edit"
+                        onClick={() => handleShare(note)}
+                        className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        title="Share to WhatsApp"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
                       </button>
-                      <button
-                        onClick={() => handleDelete(note.id)}
-                        className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                      </button>
+                      
+                      <div className="relative">
+                        <button
+                          onClick={() => setActiveMenuId(activeMenuId === note.id ? null : note.id)}
+                          className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" /></svg>
+                        </button>
+
+                        {activeMenuId === note.id && (
+                          <div className="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-bottom-right">
+                            <button onClick={() => { setReadNote(note); setActiveMenuId(null); }} className="px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                              Display
+                            </button>
+                            <button onClick={() => { handleEdit(note); setActiveMenuId(null); }} className="px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                              Edit
+                            </button>
+                            <button onClick={() => { setDeleteConfirmationId(note.id); setActiveMenuId(null); }} className="px-4 py-3 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600">
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   </div>
@@ -276,6 +306,45 @@ export default function NotesPage() {
         {toastMessage && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-sm">
             {toastMessage}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmationId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+              <h3 className="text-lg font-bold text-gray-900">Padam Nota?</h3>
+              <p className="text-gray-500">Tindakan ini tidak boleh dikembalikan.</p>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 font-medium hover:bg-gray-50">
+                  Batal
+                </button>
+                <button onClick={() => handleDelete(deleteConfirmationId)} className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-medium hover:bg-red-600">
+                  Padam
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Read Note Modal */}
+        {readNote && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-2xl bg-white rounded-3xl p-6 shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 pr-8">{readNote.title}</h2>
+                <button onClick={() => setReadNote(null)} className="p-1 text-gray-400 hover:text-gray-900">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div 
+                className="overflow-y-auto pr-2 text-gray-700 prose max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                dangerouslySetInnerHTML={{ __html: readNote.content }}
+              />
+              <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400 text-center">
+                {new Date(readNote.created_at).toLocaleDateString()}
+              </div>
+            </div>
           </div>
         )}
       </div>

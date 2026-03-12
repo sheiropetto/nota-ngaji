@@ -17,6 +17,7 @@ export default function VocabPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
 
   // Fetch data on load
   useEffect(() => {
@@ -69,7 +70,6 @@ export default function VocabPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Padam perkataan ini?")) return;
     const { error } = await supabase
       .from('vocab')
       .delete()
@@ -79,6 +79,7 @@ export default function VocabPage() {
       setVocabList(vocabList.filter((item) => item.id !== id));
       showToast("Perkataan telah dipadam.");
     }
+    setDeleteConfirmationId(null);
   };
 
   const handleEdit = (item: VocabItem) => {
@@ -199,7 +200,7 @@ export default function VocabPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600"
+                    className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                     title="Edit word"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -207,8 +208,8 @@ export default function VocabPage() {
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    onClick={() => setDeleteConfirmationId(item.id)}
+                    className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                     title="Delete word"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -224,6 +225,24 @@ export default function VocabPage() {
         {toastMessage && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-sm">
             {toastMessage}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmationId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+              <h3 className="text-lg font-bold text-gray-900">Padam Perkataan?</h3>
+              <p className="text-gray-500">Tindakan ini tidak boleh dikembalikan.</p>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 font-medium hover:bg-gray-50">
+                  Batal
+                </button>
+                <button onClick={() => handleDelete(deleteConfirmationId)} className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-medium hover:bg-red-600">
+                  Padam
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
