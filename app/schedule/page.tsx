@@ -24,6 +24,8 @@ export default function SchedulePage() {
   const [selectedDay, setSelectedDay] = useState("Hari Ini");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   // Form state
   const [title, setTitle] = useState("");
@@ -34,8 +36,11 @@ export default function SchedulePage() {
   const [day, setDay] = useState("Hari Ini");
 
   useEffect(() => {
-    const fetchSchedules = async () => {
-      const { data } = await supabase.from("schedules").select("*");
+    fetchSchedules();
+  }, []);
+
+  const fetchSchedules = async () => {
+    const { data } = await supabase.from("schedules").select("*");
 
       if (data) {
         const newSchedule: Record<string, ScheduleItem[]> = {
@@ -56,68 +61,93 @@ export default function SchedulePage() {
 
         setSchedule(newSchedule);
       }
-    };
+  };
 
-    fetchSchedules();
-  }, []);
-
-  const handleAddSchedule = async (e: FormEvent) => {
+  const handleSaveSchedule = async (e: FormEvent) => {
     e.preventDefault();
     if (!title || !time || !ustaz || !location) {
       alert("Sila isi semua ruangan.");
       return;
     }
-
     setIsSubmitting(true);
 
-    const { data, error } = await supabase
-      .from("schedules")
-      .insert([
-        {
-          title,
-          time,
-          ustaz,
-          location,
-          type,
-          day,
-        },
-      ])
-      .select();
-
-    if (error) {
-      console.error(error);
-      alert("Gagal menambah jadual. Sila semak log atau 'Row Level Security' di Supabase.");
-      setIsSubmitting(false);
-      return;
+    if (editingId) {
+      // Update
+      const { error } = await supabase
+        .from("schedules")
+        .update({ title, time, ustaz, location, type, day })
+        .eq("id", editingId);
+      if (!error) {
+        fetchSchedules();
+        showToast("Jadual berjaya dikemaskini.");
+      }
+    } else {
+      // Insert
+      const { error } = await supabase
+        .from("schedules")
+        .insert([{ title, time, ustaz, location, type, day }]);
+      if (!error) {
+        fetchSchedules();
+        showToast("Jadual berjaya ditambah.");
+      }
     }
 
-    if (data) {
-      const newItem = data[0] as ScheduleItem;
-      setSchedule((prevSchedule) => {
-        const daySchedule = [...(prevSchedule[newItem.day] || []), newItem];
-        daySchedule.sort((a, b) => a.time.localeCompare(b.time));
-        return {
-          ...prevSchedule,
-          [newItem.day]: daySchedule,
-        };
-      });
-
-      // Reset form and close modal
-      setIsModalOpen(false);
-      setTitle("");
-      setTime("");
-      setUstaz("");
-      setLocation("");
-      setType("Maghrib");
-      setDay("Hari Ini");
-    }
-    alert("Jadual berjaya ditambah.");
+    closeAndResetModal();
     setIsSubmitting(false);
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm("Adakah anda pasti mahu memadam jadual ini?")) return;
+    const { error } = await supabase.from("schedules").delete().eq("id", id);
+    if (!error) {
+      fetchSchedules();
+      showToast("Jadual telah dipadam.");
+    }
+  };
+
+  const handleEdit = (item: ScheduleItem) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setTime(item.time);
+    setUstaz(item.ustaz);
+    setLocation(item.location);
+    setType(item.type);
+    setDay(item.day);
+    setIsModalOpen(true);
+  };
+
+  const openAddModal = () => {
+    setEditingId(null);
+    setTitle("");
+    setTime("");
+    setUstaz("");
+    setLocation("");
+    setType("Maghrib");
+    setDay("Hari Ini");
+    setIsModalOpen(true);
+  };
+
+  const closeAndResetModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setTitle("");
+    setTime("");
+    setUstaz("");
+    setLocation("");
+    setType("Maghrib");
+    setDay("Hari Ini");
+  };
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3000);
+  };
+
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-gray-50 p-4 md:p-8 text-gray-900">
-      <div className="mx-auto max-w-2xl space-y-8">
+    <main className="min-h-full bg-gray-50 p-4 text-gray-900">
+      <div className="mx-auto w-full space-y-8">
         
         <header className="flex items-center justify-between">
           <div>
@@ -125,10 +155,10 @@ export default function SchedulePage() {
             <p className="text-gray-500">Semak jadual pengajian agama di sekitar anda.</p>
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openAddModal}
             className="rounded-full bg-emerald-600 px-6 py-2 font-bold text-white transition-all hover:bg-emerald-700 hover:scale-105 shadow-md shadow-emerald-100"
           >
-            + Add Jadual
+            + Add
           </button>
         </header>
 
@@ -161,7 +191,7 @@ export default function SchedulePage() {
             schedule[selectedDay].map((item) => (
               <div
                 key={item.id}
-                className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm"
+                className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm"
               >
                 <div className="absolute top-0 right-0 rounded-bl-2xl bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 uppercase tracking-wider">
                   {item.type}
@@ -186,6 +216,22 @@ export default function SchedulePage() {
                     {item.location}
                   </div>
                 </div>
+                <div className="absolute top-3 right-3 flex items-center gap-1">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Edit Jadual"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 7.125 18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Padam Jadual"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -196,8 +242,8 @@ export default function SchedulePage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Tambah Jadual Baru</h2>
-            <form onSubmit={handleAddSchedule} className="space-y-4">
+            <h2 className="mb-4 text-2xl font-bold text-gray-900">{editingId ? "Kemaskini Jadual" : "Jadual Baru"}</h2>
+            <form onSubmit={handleSaveSchedule} className="space-y-4">
               <input
                 type="text"
                 placeholder="Tajuk Kuliyah"
@@ -228,7 +274,7 @@ export default function SchedulePage() {
               </div>
               <input
                 type="text"
-                placeholder="Penceramah (e.g. Ustaz Azhar Idrus)"
+                placeholder="Penceramah"
                 value={ustaz}
                 onChange={(e) => setUstaz(e.target.value)}
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
@@ -236,7 +282,7 @@ export default function SchedulePage() {
               />
               <input
                 type="text"
-                placeholder="Lokasi (e.g. Masjid Negeri)"
+                placeholder="Lokasi"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
@@ -257,7 +303,7 @@ export default function SchedulePage() {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={closeAndResetModal}
                   className="rounded-full border border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-transform active:scale-95"
                 >
                   Cancel
@@ -267,11 +313,17 @@ export default function SchedulePage() {
                   disabled={isSubmitting}
                   className="rounded-full bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95 shadow-md shadow-emerald-100"
                 >
-                  {isSubmitting ? "Saving..." : "Save Schedule"}
+                  {isSubmitting ? "Saving..." : (editingId ? "Update" : "Save")}
                 </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-sm">
+          {toastMessage}
         </div>
       )}
     </main>

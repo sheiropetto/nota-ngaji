@@ -22,12 +22,12 @@ export default function Home() {
         <div className="flex gap-4 justify-center mt-6">
           <Link href="/notes">
             <button className="px-8 py-3 rounded-full bg-emerald-600 text-white font-bold hover:scale-105 transition-transform duration-200 shadow-lg shadow-emerald-200">
-              Start Writing
+              Notes
             </button>
           </Link>
           <Link href="/tools">
             <button className="px-8 py-3 rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-colors duration-200 text-gray-700">
-              Zikir Counter
+              Zikir
             </button>
           </Link>
         </div>

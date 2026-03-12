@@ -16,6 +16,7 @@ export default function VocabPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   // Fetch data on load
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function VocabPage() {
       if (!error) {
         setVocabList(vocabList.map((item) => (item.id === editingId ? { ...item, arabic: arabic.trim(), meaning: meaning.trim() } : item)));
         resetForm();
-        alert("Perkataan berjaya dikemaskini.");
+        showToast("Perkataan berjaya dikemaskini.");
       }
     } else {
       const { data, error } = await supabase
@@ -56,7 +57,7 @@ export default function VocabPage() {
       if (data) {
         setVocabList([data[0], ...vocabList]);
         resetForm();
-        alert("Perkataan berjaya ditambah.");
+        showToast("Perkataan berjaya ditambah.");
       }
     }
   };
@@ -76,7 +77,7 @@ export default function VocabPage() {
 
     if (!error) {
       setVocabList(vocabList.filter((item) => item.id !== id));
-      alert("Perkataan telah dipadam.");
+      showToast("Perkataan telah dipadam.");
     }
   };
 
@@ -87,14 +88,21 @@ export default function VocabPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3000);
+  };
+
   const filteredVocab = vocabList.filter((item) =>
     item.arabic.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.meaning.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-gray-50 p-4 md:p-8 text-gray-900">
-      <div className="mx-auto max-w-2xl space-y-8">
+    <main className="min-h-full bg-gray-50 p-4 text-gray-900">
+      <div className="mx-auto w-full space-y-8">
         
         <header className="space-y-2 text-center md:text-left">
           <h1 className="text-3xl font-bold text-emerald-600">Personal Vocab</h1>
@@ -135,7 +143,7 @@ export default function VocabPage() {
               type="submit"
               className="flex-1 rounded-full bg-emerald-600 py-3 font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 shadow-lg shadow-emerald-100"
             >
-              {editingId ? "Update" : "Add to List"}
+              {editingId ? "Update" : "Add"}
             </button>
             {editingId && (
               <button
@@ -153,7 +161,7 @@ export default function VocabPage() {
         <div className="w-full">
           <input
             type="text"
-            placeholder="Cari perkataan (Arab atau Maksud)..."
+            placeholder="Cari perkataan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-full border border-gray-200 bg-white p-4 pl-6 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none"
@@ -173,7 +181,7 @@ export default function VocabPage() {
               {vocabList.length > 0 && searchTerm ? (
                 <p>Tiada perkataan dijumpai untuk carian "{searchTerm}".</p>
               ) : (
-                <p>No words saved yet.</p>
+                <p>Belum ada perkataan disimpan.</p>
               )}
             </div>
           ) : (
@@ -188,10 +196,10 @@ export default function VocabPage() {
                   </h3>
                   <p className="text-gray-600 font-medium">{item.meaning}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-emerald-50 hover:text-emerald-600 group-hover:opacity-100"
+                    className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600"
                     title="Edit word"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -200,7 +208,7 @@ export default function VocabPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                    className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600"
                     title="Delete word"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -212,6 +220,12 @@ export default function VocabPage() {
             ))
           )}
         </div>
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-sm">
+            {toastMessage}
+          </div>
+        )}
       </div>
     </main>
   );
