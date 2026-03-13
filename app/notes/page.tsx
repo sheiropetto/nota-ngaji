@@ -147,8 +147,8 @@ export default function NotesPage() {
                 </div>
                 <div ref={editorRef} className="min-h-[300px] p-2 focus:outline-none prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" contentEditable suppressContentEditableWarning />
                 <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold active:bg-emerald-700">{editingId ? "Update" : "Simpan"}</button>
-                  <button type="button" onClick={resetEditor} className="px-6 py-4 text-gray-500 font-medium active:text-gray-900">Batal</button>
+                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-full font-bold active:bg-emerald-700">{editingId ? "Update" : "Simpan"}</button>
+                  <button type="button" onClick={resetEditor} className="px-6 py-4 text-gray-500 font-medium active:text-gray-900 rounded-full">Batal</button>
                 </div>
               </form>
             ) : (
@@ -217,8 +217,8 @@ export default function NotesPage() {
             <h3 className="text-xl font-bold mb-2">Padam Nota?</h3>
             <p className="text-gray-500 mb-6 text-sm">Nota ini akan dipadam selamanya.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-4 text-gray-500 font-bold active:text-gray-900">Batal</button>
-              <button onClick={() => { if (deleteConfirmationId) handleDelete(deleteConfirmationId); }} className="flex-1 bg-red-500 text-white py-4 rounded-2xl font-bold active:bg-red-600 shadow-lg shadow-red-100">Padam</button>
+              <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-4 text-gray-500 font-bold active:text-gray-900 rounded-full">Batal</button>
+              <button onClick={() => { if (deleteConfirmationId) handleDelete(deleteConfirmationId); }} className="flex-1 bg-red-500 text-white py-4 rounded-full font-bold active:bg-red-600 shadow-lg shadow-red-100">Padam</button>
             </div>
           </div>
         </div>

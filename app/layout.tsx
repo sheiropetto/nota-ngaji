@@ -31,17 +31,13 @@ export default function RootLayout({
       <body
         className={`${montserrat.className} antialiased bg-gray-200 text-gray-900 flex justify-center min-h-screen`}
       >
-        {/* Main Mobile Container 
-          Removed 'relative' to ensure the fixed navbar doesn't get clipped 
-          if the content height fluctuates.
-        */}
         <div className="w-full max-w-md bg-gray-50 min-h-screen shadow-2xl flex flex-col">
           <Navbar />
           
-          {/* flex-1 pushes the content to fill the remaining space.
-            pb-32 ensures the content scrolls past the floating bottom pill.
+          {/* pt-14: This adds 56px of padding at the top to match the h-14 header.
+            This ensures your page titles (like "Nota Ngaji.") start below the header.
           */}
-          <main className="flex-1 pb-32 overflow-y-auto">
+          <main className="flex-1 pt-14 pb-32 overflow-y-auto">
             {children}
           </main>
         </div>

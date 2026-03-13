@@ -56,16 +56,20 @@ export default function Navbar() {
 
   return (
     <>
-      {/* 1. Header is now absolutely positioned so it doesn't push the screen down */}
-      <div className="absolute top-0 left-0 w-full h-14 flex items-center justify-center px-4 bg-white/50 backdrop-blur-md z-40 border-b border-gray-100">
+      {/* 1. Glossy Header
+          - bg-white/20: Very low opacity makes the frost effect clear.
+          - backdrop-blur-3xl: Maximum blur creates the deep "glass" depth.
+          - border-b: Subtle border to separate from content.
+      */}
+      <header className="sticky top-0 z-40 w-full h-14 flex items-center justify-center px-4 bg-white/20 backdrop-blur-3xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
         <Link href="/" className="text-lg font-bold text-gray-900 tracking-tighter">
           Nota<span className="text-emerald-600">Ngaji</span>
         </Link>
-      </div>
+      </header>
 
       {/* 2. Floating Pill Wrapper */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md">
-        <nav className="relative overflow-hidden rounded-[28px] border border-white/40 bg-white/40 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md pointer-events-none">
+        <nav className="pointer-events-auto relative overflow-hidden rounded-full border border-white/40 bg-white/40 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl">
           <div className="flex justify-around items-center h-20 px-2">
             {navItems.map((item) => {
               const isActive = pathname === item.path;
@@ -75,8 +79,7 @@ export default function Navbar() {
                   href={item.path}
                   className="flex flex-col items-center justify-center flex-1 py-2"
                 >
-                  <div
-                    className={`flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-500 ${
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 ${
                       isActive 
                         ? "bg-emerald-500/10 text-emerald-600 shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]" 
                         : "text-gray-400 active:scale-90"
