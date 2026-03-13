@@ -89,7 +89,7 @@ export default function ZikirPage() {
       <div className="mx-auto max-w-md space-y-6">
         
         <header>
-          <h1 className="text-3xl font-bold text-emerald-600">Zikir Digital</h1>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00C9A7] to-[#059669]">Zikir Digital</h1>
           <p className="text-gray-500 text-sm">Basahi lidah dengan mengingati Allah.</p>
         </header>
 
@@ -105,7 +105,7 @@ export default function ZikirPage() {
                   className={`flex-shrink-0 snap-center rounded-2xl p-4 transition-all duration-300 ${
                     isActive
                       ? `bg-gradient-to-br ${zikir.color} text-white shadow-lg scale-105 ring-2 ring-offset-2 ring-offset-gray-50 ring-emerald-200`
-                      : "bg-white text-gray-400 border border-gray-100 hover:border-emerald-200"
+                      : "bg-white text-gray-400 border border-gray-100 hover:border-[#00C9A7]/50"
                   }`}
                 >
                   <span className="text-sm font-bold whitespace-nowrap">{zikir.label}</span>
@@ -129,7 +129,7 @@ export default function ZikirPage() {
                 <h2 className="text-4xl font-bold leading-relaxed text-gray-800" dir="rtl">
                   {activeZikir.arabic}
                 </h2>
-                <p className="text-sm font-medium text-emerald-600 uppercase tracking-widest">
+                <p className="text-sm font-medium text-[#059669] uppercase tracking-widest">
                   {activeZikir.label}
                 </p>
               </div>
@@ -154,7 +154,7 @@ export default function ZikirPage() {
                     strokeWidth="4"
                     strokeDasharray="301.59"
                     strokeDashoffset={301.59 - (progress / 100) * 301.59}
-                    className="text-emerald-500 transition-all duration-300 ease-out"
+                    className="text-[#00C9A7] transition-all duration-300 ease-out"
                     strokeLinecap="round"
                   />
                 </svg>
@@ -173,20 +173,20 @@ export default function ZikirPage() {
         </div>
         
         {/* 3. Lifetime Progress */}
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 text-white shadow-xl">
+        <div className="rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
           <div className="mb-3 flex items-end justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Jumlah Keseluruhan</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Jumlah Keseluruhan</p>
               <p className="text-3xl font-black">{grandTotal.toLocaleString()}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Sasaran</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Sasaran</p>
               <p className="text-lg font-bold">{LIFETIME_TARGET.toLocaleString()}</p>
             </div>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-emerald-900/50">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
             <div 
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-1000"
+              className="h-full rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] transition-all duration-1000"
               style={{ width: `${grandProgress}%` }}
             />
           </div>
@@ -205,7 +205,7 @@ export default function ZikirPage() {
                 key={zikir.id} 
                 onClick={() => setActiveId(zikir.id)}
                 className={`relative p-4 rounded-3xl border transition-all cursor-pointer ${
-                  activeId === zikir.id ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-100'
+                  activeId === zikir.id ? 'bg-[#00C9A7]/5 border-[#00C9A7]/20' : 'bg-white border-gray-100'
                 }`}
               >
                 <div className="flex justify-between items-start mb-2">

@@ -63,7 +63,7 @@ export default function Navbar() {
       */}
       <header className="fixed top-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-md h-14 flex items-center justify-center px-4 bg-white/30 backdrop-blur-xl border-b border-white/20 shadow-sm">
         <Link href="/" className="text-lg font-bold text-gray-900 tracking-tighter">
-          Nota<span className="text-emerald-600">Ngaji</span>
+          Nota<span className="text-[#059669]">Ngaji</span>
         </Link>
       </header>
 
@@ -81,7 +81,7 @@ export default function Navbar() {
                 >
                   <div className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 ${
                       isActive 
-                        ? "bg-emerald-500/10 text-emerald-600 shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]" 
+                        ? "bg-[#00C9A7]/10 text-[#059669] shadow-[inset_0_0_12px_rgba(0,201,167,0.1)]" 
                         : "text-gray-400 active:scale-90"
                     }`}
                   >
@@ -91,14 +91,14 @@ export default function Navbar() {
                   </div>
                   <span 
                     className={`text-[10px] font-bold mt-1 transition-all ${
-                      isActive ? "text-emerald-600 opacity-100" : "text-gray-400 opacity-0 h-0"
+                      isActive ? "text-[#059669] opacity-100" : "text-gray-400 opacity-0 h-0"
                     }`}
                   >
                     {item.name}
                   </span>
                   
                   {isActive && (
-                    <div className="absolute bottom-1 w-1 h-1 bg-emerald-600 rounded-full animate-pulse" />
+                    <div className="absolute bottom-1 w-1 h-1 bg-[#059669] rounded-full animate-pulse" />
                   )}
                 </Link>
               );

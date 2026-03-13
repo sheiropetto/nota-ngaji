@@ -117,13 +117,13 @@ export default function SchedulePage() {
         {/* Header */}
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-emerald-600">Jadual Kuliah</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00C9A7] to-[#059669]">Jadual Kuliah</h1>
             <p className="text-gray-500 text-sm">Urus masa, tuntut ilmu.</p>
           </div>
           {!isFormOpen && (
             <button 
               onClick={() => setIsFormOpen(true)}
-              className="flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all"
+              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] px-5 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
@@ -141,13 +141,13 @@ export default function SchedulePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Hari</label>
-                <select value={day} onChange={(e) => setDay(e.target.value)} className="w-full rounded-2xl border-gray-200 bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
+                <select value={day} onChange={(e) => setDay(e.target.value)} className="w-full rounded-2xl border-gray-200 bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-[#00C9A7] outline-none">
                   {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Masa</label>
-                <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="Contoh: 8.00 PM" className="w-full rounded-2xl border-none bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="Contoh: 8.00 PM" className="w-full rounded-2xl border-none bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-[#00C9A7] outline-none" />
               </div>
             </div>
 
@@ -161,8 +161,8 @@ export default function SchedulePage() {
                     onClick={() => setPeriod(p)}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
                       period === p
-                        ? "bg-emerald-600 border-emerald-600 text-white shadow-md"
-                        : "bg-white border-gray-200 text-gray-400 hover:border-emerald-300"
+                        ? "bg-gradient-to-r from-[#00C9A7] to-[#059669] border-transparent text-white shadow-md"
+                        : "bg-white border-gray-200 text-gray-400 hover:border-[#00C9A7]"
                     }`}
                   >
                     {p}
@@ -173,18 +173,18 @@ export default function SchedulePage() {
 
             <div>
               <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Aktiviti / Kitab</label>
-              <input type="text" value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Nama kuliah atau kitab..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <input type="text" value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Nama kuliah atau kitab..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-[#00C9A7] outline-none" />
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Lokasi / Guru (Pilihan)</label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Masjid atau nama ustaz..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Masjid atau nama ustaz..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-[#00C9A7] outline-none" />
             </div>
 
             <div className="flex gap-3 pt-2">
               <button 
                 type="submit" 
-                className="flex-1 bg-emerald-600 text-white py-3 rounded-full font-bold active:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-[#00C9A7] to-[#059669] text-white py-3 rounded-full font-bold active:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Simpan
               </button>
@@ -217,7 +217,7 @@ export default function SchedulePage() {
                     {dayItems.map((item) => (
                       <div key={item.id} className="group relative flex items-start gap-4 rounded-3xl bg-white p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                         <div className="flex-shrink-0 w-16 pt-1">
-                          <span className="text-sm font-bold text-emerald-600 block">{item.time}</span>
+                          <span className="text-sm font-bold text-[#059669] block">{item.time}</span>
                           {item.period && (
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mt-1">{item.period}</span>
                           )}
@@ -235,7 +235,7 @@ export default function SchedulePage() {
                         </div>
                         
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button onClick={() => handleEdit(item)} className="p-2 text-gray-300 hover:text-emerald-600 rounded-full hover:bg-emerald-50">
+                           <button onClick={() => handleEdit(item)} className="p-2 text-gray-300 hover:text-[#00C9A7] rounded-full hover:bg-[#00C9A7]/10">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" /><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" /></svg>
                            </button>
                            <button onClick={() => setDeleteConfirmationId(item.id)} className="p-2 text-gray-300 hover:text-red-500 rounded-full hover:bg-red-50">

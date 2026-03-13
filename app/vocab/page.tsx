@@ -101,7 +101,7 @@ export default function VocabPage() {
       <div className="mx-auto max-w-2xl space-y-8">
         
         <header className="space-y-1">
-          <h1 className="text-3xl font-bold text-emerald-600">Kosa Kata</h1>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00C9A7] to-[#059669]">Kosa Kata</h1>
           <p className="text-gray-500 text-sm">Bina kamus istilah Arab anda sendiri.</p>
         </header>
 
@@ -116,7 +116,7 @@ export default function VocabPage() {
               value={arabic}
               onChange={(e) => setArabic(e.target.value)}
               placeholder="اكتب هنا..."
-              className="w-full rounded-2xl border-none bg-gray-50 p-4 text-right text-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
+              className="w-full rounded-2xl border-none bg-gray-50 p-4 text-right text-2xl font-bold focus:ring-2 focus:ring-[#00C9A7] outline-none"
             />
           </div>
           
@@ -129,14 +129,14 @@ export default function VocabPage() {
               value={meaning}
               onChange={(e) => setMeaning(e.target.value)}
               placeholder="Maksud..."
-              className="w-full rounded-2xl border-none bg-gray-50 p-4 font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+              className="w-full rounded-2xl border-none bg-gray-50 p-4 font-medium focus:ring-2 focus:ring-[#00C9A7] outline-none"
             />
           </div>
 
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 rounded-full bg-emerald-600 py-4 font-bold text-white shadow-lg active:bg-emerald-700 active:scale-95 transition-all"
+              className="flex-1 rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] py-4 font-bold text-white shadow-lg active:opacity-90 active:scale-95 transition-all"
             >
               {editingId ? "Kemaskini" : "Tambah"}
             </button>
@@ -158,7 +158,7 @@ export default function VocabPage() {
             placeholder="Cari perkataan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-full border border-gray-200 p-4 px-6 shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            className="w-full rounded-full border border-gray-200 p-4 px-6 shadow-sm focus:ring-2 focus:ring-[#00C9A7] outline-none"
           />
         </div>
 
@@ -176,13 +176,13 @@ export default function VocabPage() {
                 className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-5 active:bg-gray-50 transition-colors shadow-sm"
               >
                 <div className="flex-1">
-                  <h3 className="text-3xl font-bold text-emerald-600 mb-1" dir="rtl">
+                  <h3 className="text-3xl font-bold text-[#059669] mb-1" dir="rtl">
                     {item.arabic}
                   </h3>
                   <p className="text-gray-600 font-medium">{item.meaning}</p>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => handleEdit(item)} className="p-3 text-gray-300 active:text-emerald-600">
+                  <button onClick={() => handleEdit(item)} className="p-3 text-gray-300 active:text-[#00C9A7]">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>

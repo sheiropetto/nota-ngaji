@@ -25,7 +25,7 @@ export default function Home() {
 
         <div className="grid grid-cols-2 gap-4 w-full max-w-xs mx-auto">
           <Link href="/notes" className="w-full">
-            <button className="w-full py-4 rounded-full bg-emerald-600 text-white font-bold shadow-xl shadow-emerald-100 active:scale-95 transition-all">
+            <button className="w-full py-4 rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] text-white font-bold shadow-xl shadow-[#00C9A7]/20 active:scale-95 transition-all">
               Nota
             </button>
           </Link>
