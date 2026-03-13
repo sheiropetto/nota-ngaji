@@ -1,348 +1,276 @@
 "use client";
 
-import { useState, useEffect, FormEvent, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
 
 type ScheduleItem = {
   id: number;
-  time: string;
-  title: string;
-  ustaz: string;
-  location: string;
-  type: "Maghrib" | "Subuh" | "Dhuha" | "Isyak";
   day: string;
+  period: string;
+  time: string;
+  activity: string;
+  location: string;
 };
 
-const DAYS = ["Hari Ini", "Esok", "Lusa"];
+const DAYS = ["Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu", "Ahad"];
+const PERIODS = ["Dhuha", "Zohor", "Maghrib", "Isyak", "Lain-lain"];
 
 export default function SchedulePage() {
-  const [schedule, setSchedule] = useState<Record<string, ScheduleItem[]>>({
-    "Hari Ini": [],
-    "Esok": [],
-    "Lusa": [],
-  });
-  const [selectedDay, setSelectedDay] = useState("Hari Ini");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [toastMessage, setToastMessage] = useState("");
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
-
-  // Form state
-  const [title, setTitle] = useState("");
+  const [items, setItems] = useState<ScheduleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  
+  // Form State
+  const [day, setDay] = useState(DAYS[0]);
+  const [period, setPeriod] = useState(PERIODS[0]);
   const [time, setTime] = useState("");
-  const [ustaz, setUstaz] = useState("");
+  const [activity, setActivity] = useState("");
   const [location, setLocation] = useState("");
-  const [type, setType] = useState<ScheduleItem["type"]>("Maghrib");
-  const [day, setDay] = useState("Hari Ini");
-
-  const fetchSchedules = useCallback(async () => {
-    const { data } = await supabase.from("schedules").select("*");
-
-      if (data) {
-        const newSchedule: Record<string, ScheduleItem[]> = {
-          "Hari Ini": [],
-          "Esok": [],
-          "Lusa": [],
-        };
-
-        data.forEach((item: ScheduleItem) => {
-          if (newSchedule[item.day]) {
-            newSchedule[item.day].push(item);
-          }
-        });
-
-        Object.keys(newSchedule).forEach((key) => {
-          newSchedule[key].sort((a, b) => a.time.localeCompare(b.time));
-        });
-
-        setSchedule(newSchedule);
-      }
-  }, []);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
-    fetchSchedules();
-  }, [fetchSchedules]);
+    fetchSchedule();
+  }, []);
 
-  const handleSaveSchedule = async (e: FormEvent) => {
+  const fetchSchedule = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('schedule')
+      .select('*')
+      .order('id', { ascending: true }); // Ideally order by time, but simplfied here
+    
+    if (data) setItems(data);
+    setLoading(false);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !time || !ustaz || !location) {
-      alert("Sila isi semua ruangan.");
+    if (!activity.trim() || !time.trim()) {
+      showToast("Sila isi masa dan aktiviti.");
       return;
     }
-    setIsSubmitting(true);
+
+    const entry = { day, period, time, activity, location };
 
     if (editingId) {
-      // Update
-      const { error } = await supabase
-        .from("schedules")
-        .update({ title, time, ustaz, location, type, day })
-        .eq("id", editingId);
+      const { error } = await supabase.from('schedule').update(entry).eq('id', editingId);
       if (!error) {
-        fetchSchedules();
-        showToast("Jadual berjaya dikemaskini.");
+        setItems(items.map(item => item.id === editingId ? { ...item, ...entry } : item));
+        showToast("Jadual dikemaskini.");
+        closeForm();
+      } else {
+        showToast("Ralat: " + error.message);
       }
     } else {
-      // Insert
-      const { error } = await supabase
-        .from("schedules")
-        .insert([{ title, time, ustaz, location, type, day }]);
-      if (!error) {
-        fetchSchedules();
-        showToast("Jadual berjaya ditambah.");
+      const { data, error } = await supabase.from('schedule').insert([entry]).select();
+      if (data) {
+        setItems([...items, data[0]]);
+        showToast("Kelas ditambah.");
+        closeForm();
+      } else if (error) {
+        showToast("Ralat: " + error.message);
       }
     }
-
-    closeAndResetModal();
-    setIsSubmitting(false);
   };
 
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from("schedules").delete().eq("id", id);
+    const { error } = await supabase.from('schedule').delete().eq('id', id);
     if (!error) {
-      fetchSchedules();
-      showToast("Jadual telah dipadam.");
+      setItems(items.filter(item => item.id !== id));
+      showToast("Kelas dipadam.");
     }
     setDeleteConfirmationId(null);
   };
 
   const handleEdit = (item: ScheduleItem) => {
-    setEditingId(item.id);
-    setTitle(item.title);
-    setTime(item.time);
-    setUstaz(item.ustaz);
-    setLocation(item.location);
-    setType(item.type);
     setDay(item.day);
-    setIsModalOpen(true);
+    setPeriod(item.period || PERIODS[0]);
+    setTime(item.time);
+    setActivity(item.activity);
+    setLocation(item.location);
+    setEditingId(item.id);
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openAddModal = () => {
+  const closeForm = () => {
+    setIsFormOpen(false);
     setEditingId(null);
-    setTitle("");
+    setActivity("");
     setTime("");
-    setUstaz("");
     setLocation("");
-    setType("Maghrib");
-    setDay("Hari Ini");
-    setIsModalOpen(true);
-  };
-
-  const closeAndResetModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
-    setTitle("");
-    setTime("");
-    setUstaz("");
-    setLocation("");
-    setType("Maghrib");
-    setDay("Hari Ini");
+    setDay(DAYS[0]);
+    setPeriod(PERIODS[0]);
   };
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage("");
-    }, 3000);
+    setTimeout(() => setToastMessage(""), 3000);
   };
 
   return (
-    <main className="min-h-full bg-gray-50 p-4 text-gray-900">
-      <div className="mx-auto w-full space-y-8">
+    <main className="min-h-screen bg-gray-50 p-4 pb-24 text-gray-900">
+      <div className="mx-auto max-w-2xl space-y-8">
         
+        {/* Header */}
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-emerald-600">Jadual Kuliyah</h1>
-            <p className="text-gray-500">Semak jadual pengajian agama di sekitar anda.</p>
+            <h1 className="text-3xl font-bold text-emerald-600">Jadual Kuliah</h1>
+            <p className="text-gray-500 text-sm">Urus masa, tuntut ilmu.</p>
           </div>
-          <button
-            onClick={openAddModal}
-            className="rounded-full bg-emerald-600 px-6 py-2 font-bold text-white transition-all hover:bg-emerald-700 hover:scale-105 shadow-md shadow-emerald-100"
-          >
-            + Jadual
-          </button>
+          {!isFormOpen && (
+            <button 
+              onClick={() => setIsFormOpen(true)}
+              className="flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+              <span>Tambah Jadual</span>
+            </button>
+          )}
         </header>
 
-        {/* Day Selector */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {DAYS.map((day) => (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(day)}
-              className={`rounded-full px-6 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-                selectedDay === day
-                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-200"
-                  : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200"
-              }`}
-            >
-              {day}
-            </button>
-          ))}
-        </div>
+        {/* Form */}
+        {isFormOpen && (
+          <form onSubmit={handleSave} className="space-y-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-xl animate-in fade-in slide-in-from-top-4">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Kemaskini Kelas" : "Tambah Kelas Baru"}</h2>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Hari</label>
+                <select value={day} onChange={(e) => setDay(e.target.value)} className="w-full rounded-2xl border-gray-200 bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
+                  {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Masa</label>
+                <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="Contoh: 8.00 PM" className="w-full rounded-2xl border-none bg-gray-50 p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Waktu</label>
+              <div className="flex flex-wrap gap-2">
+                {PERIODS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPeriod(p)}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
+                      period === p
+                        ? "bg-emerald-600 border-emerald-600 text-white shadow-md"
+                        : "bg-white border-gray-200 text-gray-400 hover:border-emerald-300"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Aktiviti / Kitab</label>
+              <input type="text" value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Nama kuliah atau kitab..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-gray-400 uppercase tracking-wider">Lokasi / Guru (Pilihan)</label>
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Masjid atau nama ustaz..." className="w-full rounded-2xl border-none bg-gray-50 p-3 font-medium focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="submit" 
+                className="flex-1 bg-emerald-600 text-white py-3 rounded-full font-bold active:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Simpan
+              </button>
+              <button type="button" onClick={closeForm} className="px-6 py-3 text-gray-500 font-medium active:text-gray-900 rounded-full bg-gray-100">Batal</button>
+            </div>
+          </form>
+        )}
 
         {/* Schedule List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">{selectedDay}</h2>
-          
-          {schedule[selectedDay].length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
-              Tiada kelas dijadualkan.
+        <div className="space-y-8">
+          {loading ? (
+            <div className="text-center text-gray-400 py-12 italic">Memuatkan jadual...</div>
+          ) : items.length === 0 && !isFormOpen ? (
+            <div className="py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">
+              Tiada jadual kuliah.
             </div>
           ) : (
-            schedule[selectedDay].map((item) => (
-              <div
-                key={item.id}
-                className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-lg shadow-sm"
-              >
-                <div className="absolute top-0 right-0 rounded-bl-2xl bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 uppercase tracking-wider">
-                  {item.type}
-                </div>
-                
-                <div className="mb-4">
-                  <span className="text-sm text-emerald-600">{item.time}</span>
-                  <h3 className="text-xl font-bold text-gray-900 mt-1">{item.title}</h3>
-                </div>
-                
-                <div className="flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-6">
-                  <div className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
-                    </svg>
-                    {item.ustaz}
+            DAYS.map((d) => {
+              const dayItems = items.filter(i => i.day === d);
+              if (dayItems.length === 0) return null;
+              
+              return (
+                <div key={d} className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-black text-gray-800">{d}</h3>
+                    <div className="h-px flex-1 bg-gray-200"></div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.62.829.799 1.654 1.381 2.274 1.766.311.192.571.337.757.433.093.05.165.09.213.114l.063.025.002.001zM8 9a2 2 0 114 0 2 2 0 01-4 0z" clipRule="evenodd" />
-                    </svg>
-                    {item.location}
+                  
+                  <div className="grid gap-3">
+                    {dayItems.map((item) => (
+                      <div key={item.id} className="group relative flex items-start gap-4 rounded-3xl bg-white p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                        <div className="flex-shrink-0 w-16 pt-1">
+                          <span className="text-sm font-bold text-emerald-600 block">{item.time}</span>
+                          {item.period && (
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mt-1">{item.period}</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-gray-900 leading-snug">{item.activity}</h4>
+                          {item.location && (
+                            <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.45-.96 2.337-1.782C15.485 14.908 17 12.331 17 9.5 17 5.358 13.866 2 10 2 6.134 2 3 5.358 3 9.5c0 2.83 1.515 5.408 3.291 7.07.887.822 1.717 1.398 2.337 1.782.31.193.57.337.757.433.093.048.17.087.232.117l.049.024.006.003zM10 12.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                              </svg>
+                              {item.location}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => handleEdit(item)} className="p-2 text-gray-300 hover:text-emerald-600 rounded-full hover:bg-emerald-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" /><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" /></svg>
+                           </button>
+                           <button onClick={() => setDeleteConfirmationId(item.id)} className="p-2 text-gray-300 hover:text-red-500 rounded-full hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" /></svg>
+                           </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="absolute top-3 right-3 flex items-center gap-1">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="p-2 rounded-full text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                    title="Edit Jadual"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 7.125 18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirmationId(item.id)}
-                    className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                    title="Padam Jadual"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
-      </div>
 
-      {/* Add Schedule Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">{editingId ? "Kemaskini Jadual" : "Jadual Baru"}</h2>
-            <form onSubmit={handleSaveSchedule} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Tajuk Kuliyah"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                required
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="time"
-                  placeholder="Masa"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                  required
-                />
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as ScheduleItem["type"])}
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                >
-                  <option>Maghrib</option>
-                  <option>Isyak</option>
-                  <option>Subuh</option>
-                  <option>Dhuha</option>
-                </select>
-              </div>
-              <input
-                type="text"
-                placeholder="Penceramah"
-                value={ustaz}
-                onChange={(e) => setUstaz(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Lokasi"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                required
-              />
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-500">
-                  Hari
-                </label>
-                <select
-                  value={day}
-                  onChange={(e) => setDay(e.target.value)}
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-emerald-500 focus:outline-none focus:bg-white"
-                >
-                  {DAYS.map((d) => <option key={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={closeAndResetModal}
-                  className="rounded-full border border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-transform active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-full bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95 shadow-md shadow-emerald-100"
-                >
-                  {isSubmitting ? "Saving..." : (editingId ? "Update" : "Save")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-sm">
-          {toastMessage}
-        </div>
-      )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmationId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-gray-900">Padam Jadual?</h3>
-            <p className="text-gray-500">Tindakan ini tidak boleh dikembalikan.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-xl font-bold">Padam Kelas?</h3>
+            <p className="text-gray-500 text-sm">Tindakan ini akan membuang kelas ini dari jadual.</p>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 font-medium hover:bg-gray-50">
-                Batal
-              </button>
-              <button onClick={() => handleDelete(deleteConfirmationId)} className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-medium hover:bg-red-600">
-                Padam
-              </button>
+              <button onClick={() => setDeleteConfirmationId(null)} className="flex-1 py-4 font-bold text-gray-500 rounded-full">Batal</button>
+              <button onClick={() => handleDelete(deleteConfirmationId)} className="flex-1 rounded-full bg-red-500 py-4 font-bold text-white shadow-lg shadow-red-100">Padam</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl text-sm animate-in fade-in slide-in-from-bottom-2 z-50">
+          {toastMessage}
         </div>
       )}
     </main>
