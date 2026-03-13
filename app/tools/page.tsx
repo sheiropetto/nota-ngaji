@@ -49,6 +49,10 @@ export default function ZikirPage() {
   const progress = (currentTotal % target) / target * 100;
   const lapCount = currentTotal % target;
 
+  const LIFETIME_TARGET = 10000;
+  const grandTotal = Object.values(counts).reduce((a, b) => a + b, 0);
+  const grandProgress = Math.min((grandTotal / LIFETIME_TARGET) * 100, 100);
+
   const handleCount = () => {
     // Haptic feedback for mobile
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -168,6 +172,26 @@ export default function ZikirPage() {
           </div>
         </div>
         
+        {/* 3. Lifetime Progress */}
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 text-white shadow-xl">
+          <div className="mb-3 flex items-end justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Jumlah Keseluruhan</p>
+              <p className="text-3xl font-black">{grandTotal.toLocaleString()}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Sasaran</p>
+              <p className="text-lg font-bold">{LIFETIME_TARGET.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="h-3 w-full overflow-hidden rounded-full bg-emerald-900/50">
+            <div 
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-1000"
+              style={{ width: `${grandProgress}%` }}
+            />
+          </div>
+        </div>
+
         {/* 3. Dashboard / Summary Grid */}
         <div className="pt-4">
           <div className="flex items-center justify-between mb-4">
