@@ -62,8 +62,8 @@ export default function Navbar() {
           - border-b: Subtle border to separate from content.
       */}
       <header className="fixed top-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-md h-14 flex items-center justify-center px-4 bg-white/30 backdrop-blur-xl border-b border-white/20 shadow-sm">
-        <Link href="/" className="text-lg font-bold text-gray-900 tracking-tighter">
-          Nota<span className="text-[#059669]">Ngaji</span>
+        <Link href="/" className="text-lg font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">
+          NotaNgaji
         </Link>
       </header>
 

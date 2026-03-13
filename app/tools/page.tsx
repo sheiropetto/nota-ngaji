@@ -21,18 +21,46 @@ const ZIKIR_OPTIONS: ZikirOption[] = [
   { id: 'salawat', label: 'Salawat', arabic: 'ٱللَّٰهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', target: 100, weeklyTarget: 500, color: 'from-violet-400 to-violet-600', ringColor: 'text-violet-500' },
 ];
 
+// Helper to get ISO Week ID (e.g., "2023-W42")
+const getWeekId = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getFullYear()}-W${weekNo}`;
+};
+
 export default function ZikirPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [weeklyCounts, setWeeklyCounts] = useState<Record<string, number>>({});
   const [activeId, setActiveId] = useState<string>(ZIKIR_OPTIONS[0].id);
   const [isMounted, setIsMounted] = useState(false);
   const [resetConfirmationId, setResetConfirmationId] = useState<string | null>(null);
+  const [weekId, setWeekId] = useState<string>("");
 
   // Load from local storage
   useEffect(() => {
     setIsMounted(true);
+    
+    // Load Lifetime Counts
     const saved = localStorage.getItem("zikir_counts");
     if (saved) {
       setCounts(JSON.parse(saved));
+    }
+
+    // Load Weekly Counts with Smart Reset
+    const currentWeekId = getWeekId();
+    setWeekId(currentWeekId);
+    const savedWeekly = localStorage.getItem("zikir_weekly_counts");
+    const savedWeekId = localStorage.getItem("zikir_week_id");
+
+    if (savedWeekly && savedWeekId === currentWeekId) {
+      setWeeklyCounts(JSON.parse(savedWeekly));
+    } else {
+      // New week detected (or first run), start fresh for weekly
+      setWeeklyCounts({});
+      localStorage.setItem("zikir_week_id", currentWeekId);
     }
   }, []);
 
@@ -40,8 +68,10 @@ export default function ZikirPage() {
   useEffect(() => {
     if (isMounted) {
       localStorage.setItem("zikir_counts", JSON.stringify(counts));
+      localStorage.setItem("zikir_weekly_counts", JSON.stringify(weeklyCounts));
+      if (weekId) localStorage.setItem("zikir_week_id", weekId);
     }
-  }, [counts, isMounted]);
+  }, [counts, weeklyCounts, weekId, isMounted]);
 
   const activeZikir = ZIKIR_OPTIONS.find((z) => z.id === activeId) || ZIKIR_OPTIONS[0];
   const currentTotal = counts[activeId] || 0;
@@ -53,6 +83,7 @@ export default function ZikirPage() {
 
   const LIFETIME_TARGET = 10000;
   const grandTotal = Object.values(counts).reduce((a, b) => a + b, 0);
+  const weeklyGrandTotal = Object.values(weeklyCounts).reduce((a, b) => a + b, 0);
   const grandProgress = Math.min((grandTotal / LIFETIME_TARGET) * 100, 100);
 
   const handleCount = () => {
@@ -64,6 +95,18 @@ export default function ZikirPage() {
       } else {
         navigator.vibrate(10);
       }
+    }
+
+    // Smart week check during usage (e.g. if midnight passes)
+    const currentWeekId = getWeekId();
+    if (currentWeekId !== weekId) {
+      setWeekId(currentWeekId);
+      setWeeklyCounts({ [activeId]: 1 }); // Reset others, start this one
+    } else {
+      setWeeklyCounts((prev) => ({
+        ...prev,
+        [activeId]: (prev[activeId] || 0) + 1,
+      }));
     }
 
     setCounts((prev) => ({
@@ -80,6 +123,7 @@ export default function ZikirPage() {
   const confirmReset = () => {
     if (resetConfirmationId) {
       setCounts((prev) => ({ ...prev, [resetConfirmationId]: 0 }));
+      setWeeklyCounts((prev) => ({ ...prev, [resetConfirmationId]: 0 }));
       setResetConfirmationId(null);
     }
   };
@@ -190,7 +234,7 @@ export default function ZikirPage() {
                   // Calculate dimensions for concentric rings
                   const radius = 110 - (index * 14); // Decrease radius for each inner ring
                   const circumference = 2 * Math.PI * radius;
-                  const count = counts[zikir.id] || 0;
+                  const count = weeklyCounts[zikir.id] || 0;
                   // Cap progress at 100% for visual sanity, but tracking allows more
                   const percent = Math.min((count / zikir.weeklyTarget) * 100, 100); 
                   const offset = circumference - (percent / 100) * circumference;
@@ -227,8 +271,8 @@ export default function ZikirPage() {
               
               {/* Center Legend */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-black text-gray-800">{grandTotal}</span>
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Total Zikir</span>
+                <span className="text-3xl font-black text-gray-800">{weeklyGrandTotal}</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">Minggu Ini</span>
               </div>
             </div>
             
@@ -236,7 +280,7 @@ export default function ZikirPage() {
               {ZIKIR_OPTIONS.map(z => (
                 <div key={z.id} className="flex items-center gap-1.5">
                   <div className={`w-2 h-2 rounded-full ${z.ringColor.replace('text-', 'bg-')}`} />
-                  <span className="text-[10px] font-bold text-gray-400">{z.label}</span>
+                  <span className={`text-[10px] font-bold ${z.ringColor}`}>{z.label}</span>
                 </div>
               ))}
             </div>

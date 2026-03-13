@@ -8,8 +8,8 @@ export default function Home() {
       <div className="w-full flex flex-col gap-10 text-center animate-in fade-in slide-in-from-bottom-6 duration-700">
         
         <header className="space-y-3">
-          <h1 className="text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">
-            Nota Ngaji.
+          <h1 className="text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 pb-2">
+            Nota Ngaji
           </h1>
           
           <p className="text-md text-gray-500 font-medium leading-relaxed max-w-[280px] mx-auto">
