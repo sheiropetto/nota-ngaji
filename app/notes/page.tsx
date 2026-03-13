@@ -147,7 +147,7 @@ export default function NotesPage() {
                 </div>
                 <div ref={editorRef} className="min-h-[300px] p-2 focus:outline-none prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" contentEditable suppressContentEditableWarning />
                 <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-full font-bold active:bg-emerald-700">{editingId ? "Update" : "Simpan"}</button>
+                  <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-full font-bold active:bg-emerald-700">{editingId ? "Kemaskini" : "Simpan"}</button>
                   <button type="button" onClick={resetEditor} className="px-6 py-4 text-gray-500 font-medium active:text-gray-900 rounded-full">Batal</button>
                 </div>
               </form>
@@ -186,8 +186,8 @@ export default function NotesPage() {
                               </button>
                               {activeMenuId === note.id && (
                                 <div className="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-2xl shadow-xl border border-gray-100 z-10 overflow-hidden py-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleEdit(note); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-emerald-50 text-gray-700 transition-colors">Edit</button>
-                                  <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmationId(note.id); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-red-50 text-red-600 transition-colors">Delete</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleEdit(note); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-emerald-50 text-gray-700 transition-colors">Sunting</button>
+                                  <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmationId(note.id); setActiveMenuId(null); }} className="w-full px-4 py-3 text-left text-sm active:bg-red-50 text-red-600 transition-colors">Padam</button>
                                 </div>
                               )}
                             </div>
@@ -202,9 +202,9 @@ export default function NotesPage() {
 
             {totalPages > 1 && view === "list" && (
               <div className="flex items-center justify-center gap-4 mt-12 py-4 border-t border-gray-100">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="rounded-full border border-gray-200 px-5 py-2.5 text-sm disabled:opacity-30 active:bg-white">Prev</button>
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="rounded-full border border-gray-200 px-5 py-2.5 text-sm disabled:opacity-30 active:bg-white">Sebelum</button>
                 <span className="text-sm font-semibold text-gray-500">{currentPage} / {totalPages}</span>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="rounded-full border border-gray-200 px-5 py-2.5 text-sm disabled:opacity-30 active:bg-white">Next</button>
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="rounded-full border border-gray-200 px-5 py-2.5 text-sm disabled:opacity-30 active:bg-white">Seterusnya</button>
               </div>
             )}
           </>

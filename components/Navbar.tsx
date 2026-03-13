@@ -8,7 +8,7 @@ export default function Navbar() {
 
   const navItems = [
     {
-      name: "Home",
+      name: "Utama",
       path: "/",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -17,7 +17,7 @@ export default function Navbar() {
       ),
     },
     {
-      name: "Notes",
+      name: "Nota",
       path: "/notes",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -26,7 +26,7 @@ export default function Navbar() {
       ),
     },
     {
-      name: "Vocab",
+      name: "Kosa Kata",
       path: "/vocab",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -35,7 +35,7 @@ export default function Navbar() {
       ),
     },
     {
-      name: "Tools",
+      name: "Zikir",
       path: "/tools",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -61,7 +61,7 @@ export default function Navbar() {
           - backdrop-blur-3xl: Maximum blur creates the deep "glass" depth.
           - border-b: Subtle border to separate from content.
       */}
-      <header className="sticky top-0 z-40 w-full h-14 flex items-center justify-center px-4 bg-white/20 backdrop-blur-3xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
+      <header className="fixed top-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-md h-14 flex items-center justify-center px-4 bg-white/30 backdrop-blur-xl border-b border-white/20 shadow-sm">
         <Link href="/" className="text-lg font-bold text-gray-900 tracking-tighter">
           Nota<span className="text-emerald-600">Ngaji</span>
         </Link>

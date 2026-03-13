@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Nota Ngaji",
-  description: "Digital notes for your religious classes",
+  description: "Nota digital untuk kelas agama anda",
   manifest: "/manifest.json",
 };
 

@@ -18,7 +18,7 @@ export default function QuranVerse() {
   useEffect(() => {
     // Fetch a random verse (1 to 6236)
     const randomId = Math.floor(Math.random() * 6236) + 1;
-    fetch(`https://api.alquran.cloud/v1/ayah/${randomId}/en.asad`)
+    fetch(`https://api.alquran.cloud/v1/ayah/${randomId}/ms.basmeih`)
       .then((res) => res.json())
       .then((data) => {
         setAyah(data.data);
@@ -49,7 +49,7 @@ export default function QuranVerse() {
       </blockquote>
       
       <cite className="block text-sm font-medium uppercase tracking-widest text-emerald-600 not-italic opacity-80">
-        Surah {ayah.surah.englishName} • Verse {ayah.numberInSurah}
+        Surah {ayah.surah.englishName} • Ayat {ayah.numberInSurah}
       </cite>
     </div>
   );

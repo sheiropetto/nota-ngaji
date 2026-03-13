@@ -101,14 +101,14 @@ export default function VocabPage() {
       <div className="mx-auto max-w-2xl space-y-8">
         
         <header className="space-y-1">
-          <h1 className="text-3xl font-bold text-emerald-600">Personal Vocab</h1>
+          <h1 className="text-3xl font-bold text-emerald-600">Kosa Kata</h1>
           <p className="text-gray-500 text-sm">Bina kamus istilah Arab anda sendiri.</p>
         </header>
 
         <form onSubmit={handleSave} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl space-y-4">
           <div>
             <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Arabic Word
+              Perkataan Arab
             </label>
             <input
               type="text"
@@ -122,7 +122,7 @@ export default function VocabPage() {
           
           <div>
             <label className="mb-2 block text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Meaning
+              Maksud
             </label>
             <input
               type="text"

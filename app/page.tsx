@@ -14,7 +14,7 @@ export default function Home() {
           
           <p className="text-md text-gray-500 font-medium leading-relaxed max-w-[280px] mx-auto">
             Catat ilmu, amalkan hidup. <br />
-            <span className="text-gray-400 font-normal">Your companion for religious studies.</span>
+            <span className="text-gray-400 font-normal">Teman pengajian agama anda.</span>
           </p>
         </header>
 
@@ -26,7 +26,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 w-full max-w-xs mx-auto">
           <Link href="/notes" className="w-full">
             <button className="w-full py-4 rounded-full bg-emerald-600 text-white font-bold shadow-xl shadow-emerald-100 active:scale-95 transition-all">
-              Notes
+              Nota
             </button>
           </Link>
           <Link href="/tools" className="w-full">
