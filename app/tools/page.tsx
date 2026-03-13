@@ -7,16 +7,18 @@ type ZikirOption = {
   label: string;
   arabic: string;
   target: number;
+  weeklyTarget: number;
   color: string;
+  ringColor: string;
 };
 
 const ZIKIR_OPTIONS: ZikirOption[] = [
-  { id: 'subhanallah', label: 'Subhanallah', arabic: 'سُبْحَانَ ٱللَّٰهِ', target: 33, color: 'from-emerald-400 to-emerald-600' },
-  { id: 'alhamdulillah', label: 'Alhamdulillah', arabic: 'ٱلْحَمْدُ لِلَّٰهِ', target: 33, color: 'from-teal-400 to-teal-600' },
-  { id: 'allahuakbar', label: 'Allahuakbar', arabic: 'ٱللَّٰهُ أَكْبَرُ', target: 33, color: 'from-cyan-400 to-cyan-600' },
-  { id: 'lailahaillallah', label: 'Lailahaillallah', arabic: 'لَا إِلَٰهَ إِلَّا ٱللَّٰهُ', target: 100, color: 'from-blue-400 to-blue-600' },
-  { id: 'astaghfirullah', label: 'Astaghfirullah', arabic: 'أَسْتَغْفِرُ ٱللَّٰهَ', target: 100, color: 'from-indigo-400 to-indigo-600' },
-  { id: 'salawat', label: 'Salawat', arabic: 'ٱللَّٰهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', target: 100, color: 'from-violet-400 to-violet-600' },
+  { id: 'subhanallah', label: 'Subhanallah', arabic: 'سُبْحَانَ ٱللَّٰهِ', target: 33, weeklyTarget: 1000, color: 'from-emerald-400 to-emerald-600', ringColor: 'text-emerald-500' },
+  { id: 'alhamdulillah', label: 'Alhamdulillah', arabic: 'ٱلْحَمْدُ لِلَّٰهِ', target: 33, weeklyTarget: 1000, color: 'from-teal-400 to-teal-600', ringColor: 'text-teal-500' },
+  { id: 'allahuakbar', label: 'Allahuakbar', arabic: 'ٱللَّٰهُ أَكْبَرُ', target: 33, weeklyTarget: 1000, color: 'from-cyan-400 to-cyan-600', ringColor: 'text-cyan-500' },
+  { id: 'lailahaillallah', label: 'Lailahaillallah', arabic: 'لَا إِلَٰهَ إِلَّا ٱللَّٰهُ', target: 100, weeklyTarget: 500, color: 'from-blue-400 to-blue-600', ringColor: 'text-blue-500' },
+  { id: 'astaghfirullah', label: 'Astaghfirullah', arabic: 'أَسْتَغْفِرُ ٱللَّٰهَ', target: 100, weeklyTarget: 500, color: 'from-indigo-400 to-indigo-600', ringColor: 'text-indigo-500' },
+  { id: 'salawat', label: 'Salawat', arabic: 'ٱللَّٰهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', target: 100, weeklyTarget: 500, color: 'from-violet-400 to-violet-600', ringColor: 'text-violet-500' },
 ];
 
 export default function ZikirPage() {
@@ -172,27 +174,96 @@ export default function ZikirPage() {
           </div>
         </div>
         
-        {/* 3. Lifetime Progress */}
-        <div className="rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Jumlah Keseluruhan</p>
-              <p className="text-3xl font-black">{grandTotal.toLocaleString()}</p>
+        {/* 3. Stats Section (Weekly Ring & Lifetime) */}
+        <div className="grid gap-4">
+          
+          {/* Weekly Progress Ring Chart */}
+          <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100 flex flex-col items-center">
+            <div className="mb-4 w-full flex items-center justify-between">
+               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Mingguan</h3>
+               <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-full font-bold">Target</span>
             </div>
-            <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Sasaran</p>
-              <p className="text-lg font-bold">{LIFETIME_TARGET.toLocaleString()}</p>
+            
+            <div className="relative w-64 h-64 flex items-center justify-center">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 240 240">
+                {ZIKIR_OPTIONS.map((zikir, index) => {
+                  // Calculate dimensions for concentric rings
+                  const radius = 110 - (index * 14); // Decrease radius for each inner ring
+                  const circumference = 2 * Math.PI * radius;
+                  const count = counts[zikir.id] || 0;
+                  // Cap progress at 100% for visual sanity, but tracking allows more
+                  const percent = Math.min((count / zikir.weeklyTarget) * 100, 100); 
+                  const offset = circumference - (percent / 100) * circumference;
+                  
+                  return (
+                    <g key={zikir.id}>
+                      {/* Background Ring */}
+                      <circle
+                        cx="120"
+                        cy="120"
+                        r={radius}
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                      />
+                      {/* Progress Ring */}
+                      <circle
+                        cx="120"
+                        cy="120"
+                        r={radius}
+                        fill="none"
+                        className={`${zikir.ringColor} transition-all duration-1000 ease-out`}
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+              
+              {/* Center Legend */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-black text-gray-800">{grandTotal}</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">Total Zikir</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {ZIKIR_OPTIONS.map(z => (
+                <div key={z.id} className="flex items-center gap-1.5">
+                  <div className={`w-2 h-2 rounded-full ${z.ringColor.replace('text-', 'bg-')}`} />
+                  <span className="text-[10px] font-bold text-gray-400">{z.label}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
-            <div 
-              className="h-full rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] transition-all duration-1000"
-              style={{ width: `${grandProgress}%` }}
-            />
+
+          {/* Lifetime Progress Bar */}
+          <div className="rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Keseluruhan</p>
+                <p className="text-2xl font-black">{grandTotal.toLocaleString()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#00C9A7]">Sasaran</p>
+                <p className="text-sm font-bold">{LIFETIME_TARGET.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
+              <div 
+                className="h-full rounded-full bg-gradient-to-r from-[#00C9A7] to-[#059669] transition-all duration-1000"
+                style={{ width: `${grandProgress}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* 3. Dashboard / Summary Grid */}
+        {/* 4. Dashboard / Summary Grid */}
         <div className="pt-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-800">Papan Pemuka</h3>
