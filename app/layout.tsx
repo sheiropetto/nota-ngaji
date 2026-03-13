@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import Navbar from "../components/Navbar";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -27,20 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${montserrat.className} antialiased bg-gray-200 text-gray-900 flex justify-center min-h-screen`}
+        className={`${montserrat.className} antialiased bg-gray-200 dark:bg-black text-gray-900 dark:text-gray-100 flex justify-center min-h-screen transition-colors duration-300`}
       >
-        <div className="w-full max-w-md bg-gray-50 min-h-screen shadow-2xl flex flex-col">
-          <Navbar />
-          
-          {/* pt-14: This adds 56px of padding at the top to match the h-14 header.
-            This ensures your page titles (like "Nota Ngaji.") start below the header.
-          */}
-          <main className="flex-1 pt-14 pb-32 overflow-y-auto">
-            {children}
-          </main>
-        </div>
+        <ThemeProvider>
+          <div className="w-full max-w-md bg-gray-50 dark:bg-gray-900 min-h-screen shadow-2xl flex flex-col transition-colors duration-300">
+            <Navbar />
+            
+            {/* pt-14: This adds 56px of padding at the top to match the h-14 header.
+              This ensures your page titles (like "Nota Ngaji.") start below the header.
+            */}
+            <main className="flex-1 pt-14 pb-32 overflow-y-auto">
+              {children}
+            </main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
