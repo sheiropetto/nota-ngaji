@@ -131,12 +131,12 @@ export default function ZikirPage() {
   if (!isMounted) return null;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 pb-32 text-gray-900">
+    <main className="min-h-screen p-4 pb-32 text-gray-900 dark:text-gray-100">
       <div className="mx-auto max-w-md space-y-6">
         
         <header>
           <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00C9A7] to-[#059669]">Zikir Digital</h1>
-          <p className="text-gray-500 text-sm">Basahi lidah dengan mengingati Allah.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Basahi lidah dengan mengingati Allah.</p>
         </header>
 
         {/* 1. Sliding Options */}
@@ -151,7 +151,7 @@ export default function ZikirPage() {
                   className={`flex-shrink-0 snap-center rounded-2xl p-4 transition-all duration-300 ${
                     isActive
                       ? `bg-gradient-to-br ${zikir.color} text-white shadow-lg scale-105 ring-2 ring-offset-2 ring-offset-gray-50 ring-emerald-200`
-                      : "bg-white text-gray-400 border border-gray-100 hover:border-[#00C9A7]/50"
+                      : "bg-white dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-800 hover:border-[#00C9A7]/50"
                   }`}
                 >
                   <span className="text-sm font-bold whitespace-nowrap">{zikir.label}</span>
@@ -160,19 +160,19 @@ export default function ZikirPage() {
             })}
           </div>
           {/* Fade effect on the right to indicate scroll */}
-          <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent pointer-events-none" />
         </div>
 
         {/* 2. Main Active Zikir Display & Button */}
         <div className="relative">
-          <div className="bg-white rounded-[40px] shadow-xl p-8 text-center border border-gray-100 relative overflow-hidden">
+          <div className="bg-white dark:bg-gray-800/50 rounded-[40px] shadow-xl dark:shadow-none p-8 text-center border border-gray-100 dark:border-gray-800 relative overflow-hidden">
             
             {/* Background Decoration */}
             <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${activeZikir.color}`} />
             
             <div className="space-y-6 relative z-10">
               <div className="space-y-2 h-32 flex flex-col justify-center">
-                <h2 className="text-4xl font-bold leading-relaxed text-gray-800" dir="rtl">
+                <h2 className="text-4xl font-bold leading-relaxed text-gray-800 dark:text-gray-100" dir="rtl">
                   {activeZikir.arabic}
                 </h2>
                 <p className="text-sm font-medium text-[#059669] uppercase tracking-widest">
@@ -183,14 +183,14 @@ export default function ZikirPage() {
               {/* Huge Smart Button */}
               <button
                 onClick={handleCount}
-                className="group relative w-48 h-48 mx-auto flex flex-col items-center justify-center rounded-full bg-gray-50 active:bg-gray-100 transition-all active:scale-95 touch-manipulation outline-none"
+                className="group relative w-48 h-48 mx-auto flex flex-col items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800 transition-all active:scale-95 touch-manipulation outline-none"
                 style={{
                   boxShadow: "inset 0 4px 10px rgba(0,0,0,0.05), 0 10px 30px -10px rgba(0,0,0,0.1)"
                 }}
               >
                 {/* Progress Ring */}
                 <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="48" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" className="text-gray-200 dark:text-gray-800" strokeWidth="4" />
                   <circle
                     cx="50"
                     cy="50"
@@ -205,14 +205,14 @@ export default function ZikirPage() {
                   />
                 </svg>
 
-                <span className="text-6xl font-black text-gray-800 tabular-nums">
+                <span className="text-6xl font-black text-gray-800 dark:text-gray-100 tabular-nums">
                   {lapCount}
                 </span>
-                <span className="text-xs font-bold text-gray-400 mt-1 uppercase">Target: {activeZikir.target}</span>
+                <span className="text-xs font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase">Target: {activeZikir.target}</span>
               </button>
 
-              <div className="text-gray-400 text-xs font-medium">
-                Jumlah Keseluruhan: <span className="text-gray-900 font-bold">{currentTotal}</span>
+              <div className="text-gray-400 dark:text-gray-500 text-xs font-medium">
+                Jumlah Keseluruhan: <span className="text-gray-900 dark:text-white font-bold">{currentTotal}</span>
               </div>
             </div>
           </div>
@@ -222,10 +222,10 @@ export default function ZikirPage() {
         <div className="grid gap-4">
           
           {/* Weekly Progress Ring Chart */}
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100 flex flex-col items-center">
+          <div className="rounded-3xl bg-white dark:bg-gray-800/50 p-6 shadow-xl dark:shadow-none border border-gray-100 dark:border-gray-800 flex flex-col items-center">
             <div className="mb-4 w-full flex items-center justify-between">
-               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Mingguan</h3>
-               <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-full font-bold">Target</span>
+               <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Mingguan</h3>
+               <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-2 py-1 rounded-full font-bold">Target</span>
             </div>
             
             <div className="relative w-64 h-64 flex items-center justify-center">
@@ -247,7 +247,8 @@ export default function ZikirPage() {
                         cy="120"
                         r={radius}
                         fill="none"
-                        stroke="#f3f4f6"
+                      stroke="currentColor"
+                      className="text-gray-100 dark:text-gray-700"
                         strokeWidth="8"
                         strokeLinecap="round"
                       />
@@ -271,8 +272,8 @@ export default function ZikirPage() {
               
               {/* Center Legend */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-black text-gray-800">{weeklyGrandTotal}</span>
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Minggu Ini</span>
+                <span className="text-3xl font-black text-gray-800 dark:text-gray-100">{weeklyGrandTotal}</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Minggu Ini</span>
               </div>
             </div>
             
@@ -310,8 +311,8 @@ export default function ZikirPage() {
         {/* 4. Dashboard / Summary Grid */}
         <div className="pt-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800">Papan Pemuka</h3>
-            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-md font-bold">Semua</span>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Papan Pemuka</h3>
+            <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md font-bold">Semua</span>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -320,24 +321,24 @@ export default function ZikirPage() {
                 key={zikir.id} 
                 onClick={() => setActiveId(zikir.id)}
                 className={`relative p-4 rounded-3xl border transition-all cursor-pointer ${
-                  activeId === zikir.id ? 'bg-[#00C9A7]/5 border-[#00C9A7]/20' : 'bg-white border-gray-100'
+                  activeId === zikir.id ? 'bg-[#00C9A7]/10 dark:bg-[#00C9A7]/20 border-[#00C9A7]/20 dark:border-[#00C9A7]/30' : 'bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-800'
                 }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${zikir.color}`} />
                   <button 
                     onClick={(e) => handleReset(zikir.id, e)}
-                    className="text-gray-300 hover:text-red-400 p-1"
+                    className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-400 p-1 transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                       <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 tabular-nums mb-1">
+                <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 tabular-nums mb-1">
                   {counts[zikir.id] || 0}
                 </div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">
+                <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider truncate">
                   {zikir.label}
                 </div>
               </div>
@@ -349,11 +350,11 @@ export default function ZikirPage() {
 
       {resetConfirmationId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold">Tetapkan Semula?</h3>
-            <p className="text-gray-500 text-sm">Adakah anda pasti mahu menetapkan semula kiraan ini kepada kosong?</p>
+          <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl dark:shadow-none border dark:border-gray-700 space-y-4">
+            <h3 className="text-xl font-bold dark:text-white">Tetapkan Semula?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Adakah anda pasti mahu menetapkan semula kiraan ini kepada kosong?</p>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setResetConfirmationId(null)} className="flex-1 py-4 font-bold text-gray-500 rounded-full">Batal</button>
+              <button onClick={() => setResetConfirmationId(null)} className="flex-1 py-4 font-bold text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-full transition-colors">Batal</button>
               <button onClick={confirmReset} className="flex-1 rounded-full bg-red-500 py-4 font-bold text-white shadow-lg shadow-red-100">Ya, Tetapkan</button>
             </div>
           </div>
