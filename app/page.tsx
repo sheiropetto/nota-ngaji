@@ -6,7 +6,7 @@ export default function HomePage() {
     <main className="min-h-screen p-4 pb-24 text-gray-900 dark:text-gray-100 flex flex-col items-center pt-8 space-y-8">
       <div className="w-full max-w-md mx-auto space-y-6">
         
-        <div className="text-center space-y-2 mb-2">
+        <div className="text-center space-y-2 mb-8 pt-4">
           <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00C9A7] to-[#059669]">
             Selamat Datang
           </h1>
